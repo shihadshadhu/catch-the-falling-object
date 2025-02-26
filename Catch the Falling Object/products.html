@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catch the Falling Object</title>
+    <style>
+        body {
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(45deg, #ffcccb, #add8e6);
+            transition: background 0.5s ease-in-out;
+            margin: 0;
+            overflow: hidden;
+        }
+        canvas {
+            background: rgba(255, 255, 255, 0.2);
+            display: block;
+            margin: auto;
+            border-radius: 10px;
+        }
+        #scoreboard {
+            font-size: 24px;
+            font-weight: bold;
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        #highscore {
+            font-size: 18px;
+            position: absolute;
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+    <div id="scoreboard">Score: 0</div>
+    <div id="highscore">High Score: 0</div>
+    <canvas id="gameCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById("gameCanvas");
+        const ctx = canvas.getContext("2d");
+        canvas.width = 500;
+        canvas.height = 500;
+        
+        let catcher = { x: 225, y: 450, width: 50, height: 10, speed: 5 };
+        let object = { x: Math.random() * 450, y: 0, width: 20, height: 20, speed: 3 };
+        let score = 0;
+        let highScore = 0;
+        let gameOver = false;
+        let keys = {};
+        let colors = ["#ffcccb", "#ffb6c1", "#ffa07a", "#98fb98", "#add8e6", "#f0e68c", "#dda0dd"];
+
+        document.addEventListener("keydown", (e) => {
+            keys[e.key] = true;
+            if (e.key === " ") restartGame();
+        });
+        document.addEventListener("keyup", (e) => {
+            keys[e.key] = false;
+        });
+
+        function update() {
+            if (keys["ArrowLeft"] && catcher.x > 0) {
+                catcher.x -= catcher.speed;
+            }
+            if (keys["ArrowRight"] && catcher.x < canvas.width - catcher.width) {
+                catcher.x += catcher.speed;
+            }
+            
+            object.y += object.speed;
+            
+            if (object.y + object.height >= catcher.y && object.x + object.width >= catcher.x && object.x <= catcher.x + catcher.width) {
+                score++;
+                document.getElementById("scoreboard").textContent = "Score: " + score;
+
+                if (score > highScore) {
+                    highScore = score;
+                    document.getElementById("highscore").textContent = "High Score: " + highScore;
+                }
+
+                changeBackgroundGradient();
+                resetObject();
+            }
+            
+            if (object.y > canvas.height) {
+                gameOver = true;
+            }
+        }
+
+        function resetObject() {
+            object.x = Math.random() * 450;
+            object.y = 0;
+        }
+
+        function restartGame() {
+            score = 0;
+            document.getElementById("scoreboard").textContent = "Score: " + score;
+            catcher.x = 225;
+            object.y = 0;
+            gameOver = false;
+            document.body.style.background = "linear-gradient(45deg, #ffcccb, #add8e6)";
+            gameLoop();
+        }
+
+        function changeBackgroundGradient() {
+            let color1 = colors[Math.floor(Math.random() * colors.length)];
+            let color2 = colors[Math.floor(Math.random() * colors.length)];
+            document.body.style.background = `linear-gradient(45deg, ${color1}, ${color2})`;
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = "black";
+            ctx.fillRect(catcher.x, catcher.y, catcher.width, catcher.height);
+            
+            ctx.fillStyle = "red";
+            ctx.fillRect(object.x, object.y, object.width, object.height);
+            
+            if (gameOver) {
+                ctx.fillStyle = "black";
+                ctx.font = "30px Arial";
+                ctx.fillText("Game Over!", 180, 250);
+                ctx.fillText("Press Space to Restart", 120, 300);
+            }
+        }
+
+        function gameLoop() {
+            if (!gameOver) {
+                update();
+                draw();
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        gameLoop();
+    </script>
+</body>
+</html>
